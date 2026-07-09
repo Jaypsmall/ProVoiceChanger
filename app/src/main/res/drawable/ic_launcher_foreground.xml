@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Fondo oscuro circular -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,54m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+
+    <!-- Imagen de los ojos rojos centrada -->
+    <!-- Como no puedo referenciar un bitmap directamente en un vector con una imagen compleja,
+         voy a crear un layer-list para el icono real mas adelante.
+         Por ahora dejo esto como base roja potente -->
+    <path
+        android:fillColor="#CF1824"
+        android:pathData="M24,44 L34,48 L44,44 L34,40 Z M64,44 L74,48 L84,44 L74,40 Z" />
+</vector>

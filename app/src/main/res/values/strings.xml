@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ProVoice Changer</string>
+    <string name="main_subtitle">Procesador de voz profesional en tiempo real.</string>
+    <string name="main_limit_note">Modo actual: microfono a efecto y salida por altavoz o auriculares. Android no permite sustituir el microfono de otras apps sin permisos de sistema o root.</string>
+    <string name="status_microphone_ready">Microfono listo</string>
+    <string name="status_microphone_missing">Falta permiso de microfono</string>
+    <string name="status_overlay_ready">Ventana flotante lista</string>
+    <string name="status_overlay_missing">Permiso de ventana flotante pendiente</string>
+    <string name="status_notifications_ready">Notificaciones listas</string>
+    <string name="status_notifications_missing">Falta permiso de notificaciones</string>
+    <string name="status_processing">Efecto activo</string>
+    <string name="status_paused">Efecto pausado</string>
+    <string name="action_allow_microphone" translatable="false">Permitir microfono</string>
+    <string name="action_allow_overlay">Permitir ventana flotante</string>
+    <string name="action_start">Iniciar efecto</string>
+    <string name="action_stop">Detener servicio</string>
+    <string name="action_activate">Activar</string>
+    <string name="action_pause">Pausar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="floating_title">ProVoiceChanger</string>
+    <string name="control_pitch">Grave</string>
+    <string name="control_drive" translatable="false">Fuerza</string>
+    <string name="notification_channel_name">Procesamiento de voz</string>
+    <string name="notification_ready">Servicio preparado</string>
+    <string name="notification_processing">Efecto activo</string>
+    <string name="notification_paused">Efecto pausado</string>
+    <string name="notification_audio_error">No se pudo iniciar el audio</string>
+    <string name="notification_missing_microphone">Falta permiso de microfono</string>
+</resources>

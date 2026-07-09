@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screen_background">#101416</color>
+    <color name="panel_background">#1A2226</color>
+    <color name="floating_background">#E614181B</color>
+    <color name="text_primary">#F4F7F5</color>
+    <color name="text_secondary">#B9C7C0</color>
+    <color name="text_muted">#87938E</color>
+    <color name="accent_green">#43E97B</color>
+    <color name="accent_red">#DF3F48</color>
+    <color name="accent_blue">#4AA3FF</color>
+    <color name="button_text">#FFFFFF</color>
+    <color name="ic_launcher_background">#101416</color>
+</resources>
