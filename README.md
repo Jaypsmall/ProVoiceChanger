@@ -34,3 +34,12 @@ El proyecto usa Android Gradle Plugin `9.2.1`, JDK 17, `minSdk 26` y `targetSdk 
 2. Probar primero el modo local de baja latencia.
 3. Explorar si el sistema expone rutas utiles en `/vendor/etc/audio_policy*`.
 4. Si existe camino viable, crear un modulo Magisk separado; no mezclarlo con la app base.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/682c78c5-ea2e-4176-b8bc-aaee9e063e6f" width="30%" />
+  <img src="https://github.com/user-attachments/assets/fbee727d-e802-479c-b251-d595c0e569a0" width="30%" />
+  <img src="https://github.com/user-attachments/assets/f2b72652-43ee-4087-858a-20433138d0cb" width="30%" />
+</p>
+
+
+
