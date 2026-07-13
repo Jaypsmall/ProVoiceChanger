@@ -36,6 +36,8 @@ El proyecto usa Android Gradle Plugin `9.2.1`, JDK 17, `minSdk 26` y `targetSdk 
   <img src="https://github.com/user-attachments/assets/f2b72652-43ee-4087-858a-20433138d0cb" width="30%" />
 </p>
 
+![Android](https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white)
+
 # 📄 Licencia
 
 Copyright © 2026. Created by JAYLIZ. Todos los derechos reservados.
