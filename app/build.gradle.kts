@@ -17,9 +17,7 @@ android {
         versionCode = 3
         versionName = "0.3.0"
 
-        targetSdk {
-            version = release(26)
-        }
+        targetSdk = 35
     }
 
     compileOptions {

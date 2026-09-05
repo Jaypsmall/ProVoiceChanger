@@ -34,8 +34,7 @@ final class VoiceSettings {
     static int getChunk(SharedPreferences preferences) {
         return clamp(
                 preferences.getInt(KEY_CHUNK, DEFAULT_CHUNK),
-                MIN_CHUNK,
-                MAX_CHUNK
+                MIN_CHUNK
         );
     }
 
@@ -62,14 +61,14 @@ final class VoiceSettings {
             float drive
     ) {
         preferences.edit()
-                .putInt(KEY_CHUNK, clamp(chunk, MIN_CHUNK, MAX_CHUNK))
+                .putInt(KEY_CHUNK, clamp(chunk, MIN_CHUNK))
                 .putFloat(KEY_PITCH, clamp(pitch, MIN_PITCH, MAX_PITCH))
                 .putFloat(KEY_DRIVE, clamp(drive, MIN_DRIVE, MAX_DRIVE))
                 .apply();
     }
 
-    static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
+    static int clamp(int value, int min) {
+        return Math.max(min, Math.min(VoiceSettings.MAX_CHUNK, value));
     }
 
     static float clamp(float value, float min, float max) {
