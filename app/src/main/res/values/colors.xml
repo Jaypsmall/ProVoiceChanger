@@ -11,4 +11,5 @@
     <color name="accent_blue">#4AA3FF</color>
     <color name="button_text">#FFFFFF</color>
     <color name="ic_launcher_background">#101416</color>
+    <color name="ash_grey">#B0BEC5</color>
 </resources>
