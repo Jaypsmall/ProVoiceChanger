@@ -13,9 +13,17 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +33,36 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
 
     private SharedPreferences preferences;
     private DemonControlView controlView;
+    private DrawerLayout drawerLayout;
+    private View drawerContent;
+
+    private Switch switchActivation;
+    private Switch switchRoot;
+    private TextView textActivation;
+    private TextView textRoot;
+    private TextView textRecord;
+    private TextView iconRecord;
+    private TextView textAppVersion;
+
     private boolean pendingActivation;
+    private boolean recording;
+
+    private final android.content.BroadcastReceiver recordingReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("com.provoicechanger.RECORDING_STATUS".equals(intent.getAction())) {
+                recording = intent.getBooleanExtra("recording", false);
+                controlView.setRecording(recording);
+                updateDrawerState();
+                String filePath = intent.getStringExtra("file_path");
+                if (filePath != null) {
+                    shareAudioFile(filePath);
+                } else {
+                    Toast.makeText(context, recording ? "Grabando..." : "Grabación finalizada", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +78,9 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         }
 
         preferences = VoiceSettings.preferences(this);
+
+        drawerLayout = new DrawerLayout(this);
+
         controlView = new DemonControlView(this);
         controlView.setListener(this);
         controlView.setValues(
@@ -51,7 +91,116 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         );
         controlView.setOverlayReady(canDrawOverlays());
         controlView.setRootActive(preferences.getBoolean(VoiceSettings.KEY_ROOT_MODE, false));
-        setContentView(controlView);
+
+        drawerContent = getLayoutInflater().inflate(R.layout.nav_drawer_content, drawerLayout, false);
+
+        DrawerLayout.LayoutParams drawerParams = new DrawerLayout.LayoutParams(
+                (int) (getResources().getDisplayMetrics().density * 280),
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        drawerParams.gravity = GravityCompat.START;
+        drawerContent.setLayoutParams(drawerParams);
+
+        setupDrawerViews();
+
+        drawerLayout.addView(controlView);
+        drawerLayout.addView(drawerContent);
+        setContentView(drawerLayout);
+
+        ContextCompat.registerReceiver(
+                this,
+                recordingReceiver,
+                new android.content.IntentFilter("com.provoicechanger.RECORDING_STATUS"),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        );
+    }
+
+    private void setupDrawerViews() {
+        switchActivation = drawerContent.findViewById(R.id.switch_menu_activation);
+        switchRoot = drawerContent.findViewById(R.id.switch_menu_root);
+        textActivation = drawerContent.findViewById(R.id.text_menu_activation);
+        textRoot = drawerContent.findViewById(R.id.text_menu_root);
+        textRecord = drawerContent.findViewById(R.id.text_menu_record);
+        iconRecord = drawerContent.findViewById(R.id.icon_menu_record);
+        textAppVersion = drawerContent.findViewById(R.id.text_app_version);
+
+        String versionName = "1.0.2";
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception ignored) {}
+        if (textAppVersion != null) {
+            textAppVersion.setText("ProVoiceChanger v" + versionName);
+        }
+
+        View itemActivation = drawerContent.findViewById(R.id.menu_item_activation);
+        if (itemActivation != null) {
+            itemActivation.setOnClickListener(v -> {
+                boolean active = preferences.getBoolean(VoiceSettings.KEY_ACTIVE, false);
+                onActivationRequested(!active);
+            });
+        }
+
+        View itemInput = drawerContent.findViewById(R.id.menu_item_input);
+        if (itemInput != null) {
+            itemInput.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                onInputRequested();
+            });
+        }
+
+        View itemOutput = drawerContent.findViewById(R.id.menu_item_output);
+        if (itemOutput != null) {
+            itemOutput.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                onOutputRequested();
+            });
+        }
+
+        View itemOverlay = drawerContent.findViewById(R.id.menu_item_overlay);
+        if (itemOverlay != null) {
+            itemOverlay.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                onOverlayPermissionRequested();
+            });
+        }
+
+        View itemRoot = drawerContent.findViewById(R.id.menu_item_root);
+        if (itemRoot != null) {
+            itemRoot.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                onRootRequested();
+            });
+        }
+
+        View itemRecord = drawerContent.findViewById(R.id.menu_item_record);
+        if (itemRecord != null) {
+            itemRecord.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                onRecordRequested();
+            });
+        }
+
+        updateDrawerState();
+    }
+
+    private void updateDrawerState() {
+        boolean active = preferences.getBoolean(VoiceSettings.KEY_ACTIVE, false);
+        boolean root = preferences.getBoolean(VoiceSettings.KEY_ROOT_MODE, false);
+
+        if (switchActivation != null) switchActivation.setChecked(active);
+        if (textActivation != null) textActivation.setText(active ? "Efecto: Activado" : "Efecto: Inactivo");
+
+        if (switchRoot != null) switchRoot.setChecked(root);
+        if (textRoot != null) textRoot.setText(root ? "Modo Root: Activado" : "Modo Root (RT)");
+
+        if (textRecord != null) textRecord.setText(recording ? "Detener Grabación" : "Grabar Audio (REC)");
+        if (iconRecord != null) iconRecord.setText(recording ? "⏹️" : "🔴");
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(recordingReceiver);
+        super.onDestroy();
     }
 
     @Override
@@ -65,10 +214,28 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         );
         controlView.setOverlayReady(canDrawOverlays());
         controlView.setRootActive(preferences.getBoolean(VoiceSettings.KEY_ROOT_MODE, false));
+        updateDrawerState();
 
         if (pendingActivation && hasMicrophonePermission() && canDrawOverlays()) {
             pendingActivation = false;
             activateVoiceChanger();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onMenuRequested() {
+        if (drawerLayout != null) {
+            updateDrawerState();
+            drawerLayout.openDrawer(GravityCompat.START);
         }
     }
 
@@ -79,6 +246,7 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         } else {
             deactivateVoiceChanger();
         }
+        updateDrawerState();
     }
 
     @Override
@@ -96,9 +264,6 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         showDeviceDialog(false);
     }
 
-    /**
-     *
-     */
     @Override
     public void onOverlayPermissionRequested() {
         requestOverlayPermission();
@@ -110,6 +275,7 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         if (currentRoot) {
             preferences.edit().putBoolean(VoiceSettings.KEY_ROOT_MODE, false).apply();
             controlView.setRootActive(false);
+            updateDrawerState();
             Toast.makeText(this, "Modo Root desactivado", Toast.LENGTH_SHORT).show();
         } else {
             new Thread(() -> {
@@ -118,6 +284,7 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
                     if (success) {
                         preferences.edit().putBoolean(VoiceSettings.KEY_ROOT_MODE, true).apply();
                         controlView.setRootActive(true);
+                        updateDrawerState();
                         RootHelper.runSystemAudioFix();
                         Toast.makeText(this, "Modo Root activado (Beta)", Toast.LENGTH_LONG).show();
                         showRootWarning();
@@ -126,6 +293,45 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
                     }
                 });
             }).start();
+        }
+    }
+
+    @Override
+    public void onRecordRequested() {
+        if (!preferences.getBoolean(VoiceSettings.KEY_ACTIVE, false)) {
+            Toast.makeText(this, "Activa primero el efecto", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, AudioService.class);
+        if (recording) {
+            intent.setAction(AudioService.ACTION_STOP_RECORDING);
+        } else {
+            intent.setAction(AudioService.ACTION_START_RECORDING);
+        }
+        startService(intent);
+    }
+
+    private void shareAudioFile(String filePath) {
+        java.io.File file = new java.io.File(filePath);
+        Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                this,
+                getPackageName() + ".fileprovider",
+                file
+        );
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("audio/wav");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        
+        shareIntent.setPackage("com.whatsapp");
+        
+        try {
+            startActivity(Intent.createChooser(shareIntent, "Enviar grabación"));
+        } catch (android.content.ActivityNotFoundException e) {
+            shareIntent.setPackage(null);
+            startActivity(Intent.createChooser(shareIntent, "Enviar grabación"));
         }
     }
 
@@ -180,6 +386,7 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         preferences.edit().putBoolean(VoiceSettings.KEY_ACTIVE, true).apply();
         controlView.setActive(true);
         controlView.setOverlayReady(true);
+        updateDrawerState();
 
         Intent intent = new Intent(this, AudioService.class);
         intent.setAction(AudioService.ACTION_START_PROCESSING);
@@ -194,6 +401,7 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         pendingActivation = false;
         preferences.edit().putBoolean(VoiceSettings.KEY_ACTIVE, false).apply();
         controlView.setActive(false);
+        updateDrawerState();
         stopService(new Intent(this, AudioService.class));
     }
 
@@ -216,10 +424,9 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
             }
         }
 
-        // Si no aparece pero tenemos Root, forzamos la opcion del Cable Virtual
         if (!submixFound && preferences.getBoolean(VoiceSettings.KEY_ROOT_MODE, false)) {
             labels.add("[VIRTUAL] Cable de Audio (Root)");
-            selectable.add(null); // Usaremos una logica especial para este null con nombre especifico
+            selectable.add(null);
         }
 
         String title = input ? "Seleccionar Entrada" : "Seleccionar Salida";
@@ -230,9 +437,8 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
                     String label = labels.get(which);
                     int id = selected == null ? VoiceSettings.NO_DEVICE : selected.getId();
                     
-                    // Caso especial: Cable Virtual manual
                     if (selected == null && label.contains("[VIRTUAL]")) {
-                        id = 32768; // ID estandar de Remote Submix en el sistema
+                        id = 32768;
                     }
 
                     preferences.edit()
@@ -280,7 +486,6 @@ public class MainActivity extends Activity implements DemonControlView.Listener 
         String productName = device.getProductName() == null
                 ? "Audio"
                 : device.getProductName().toString();
-        // Muestra el tipo y puerto real para evitar confusiones
         return "[" + device.getId() + "] " + typeName(device.getType()) + " (Port:" + device.getType() + ") - " + productName;
     }
 

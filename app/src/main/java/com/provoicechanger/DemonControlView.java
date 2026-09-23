@@ -21,15 +21,19 @@ public class DemonControlView extends View {
         void onOutputRequested();
         void onOverlayPermissionRequested();
         void onRootRequested();
+        void onRecordRequested();
+        void onMenuRequested();
     }
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF menuBounds = new RectF();
     private final RectF activationBounds = new RectF();
     private final RectF inputBounds = new RectF();
     private final RectF outputBounds = new RectF();
     private final RectF overlayBounds = new RectF();
     private final RectF rootBounds = new RectF();
+    private final RectF recordBounds = new RectF();
     private final RectF heroBounds = new RectF();
     
     // Colores: Rojo para inactivo, Amarillo (como el ojo) para activo
@@ -41,6 +45,7 @@ public class DemonControlView extends View {
 
     private Listener listener;
     private boolean active;
+    private boolean recording;
     private int chunk = VoiceSettings.DEFAULT_CHUNK;
     private float pitch = VoiceSettings.DEFAULT_PITCH;
     private float drive = VoiceSettings.DEFAULT_DRIVE;
@@ -61,6 +66,7 @@ public class DemonControlView extends View {
     }
 
     void setActive(boolean active) { this.active = active; invalidate(); }
+    void setRecording(boolean recording) { this.recording = recording; invalidate(); }
     void setOverlayReady(boolean ready) {
         invalidate(); }
     void setRootActive(boolean active) {
@@ -85,6 +91,10 @@ public class DemonControlView extends View {
         textPaint.setTextSize(sp(26));
         canvas.drawText("PRO VOICE CHANGER", w / 2.0f, h * 0.08f, textPaint);
 
+        // Menu Lateral
+        menuBounds.set(dp(10), h * 0.08f - dp(22), dp(50), h * 0.08f + dp(18));
+        drawEdgeButton(canvas, menuBounds, "☰", activeColor);
+
         // 3. Botones en los bordes (Estilo IN/OUT, estrechos y alargados)
         float sw = dp(35); float sh = dp(80);
         float margin = dp(5);
@@ -94,15 +104,17 @@ public class DemonControlView extends View {
         activationBounds.set(margin, h * 0.30f, margin + sw, h * 0.30f + sh);
         rootBounds.set(margin, h * 0.45f, margin + sw, h * 0.45f + sh);
 
-        // Lado Derecho: Salida, Flotante
+        // Lado Derecho: Salida, Flotante, Grabar
         outputBounds.set(w - margin - sw, h * 0.15f, w - margin, h * 0.15f + sh);
         overlayBounds.set(w - margin - sw, h * 0.30f, w - margin, h * 0.30f + sh);
+        recordBounds.set(w - margin - sw, h * 0.45f, w - margin, h * 0.45f + sh);
 
         drawEdgeButton(canvas, inputBounds, "IN", activeColor);
         drawEdgeButton(canvas, activationBounds, active ? "ON" : "OFF", activeColor);
         drawEdgeButton(canvas, rootBounds, "RT", activeColor);
         drawEdgeButton(canvas, outputBounds, "OUT", activeColor);
         drawEdgeButton(canvas, overlayBounds, "FLT", activeColor);
+        drawEdgeButton(canvas, recordBounds, recording ? "STOP" : "REC", recording ? Color.RED : activeColor);
 
         // 4. Sliders (Sincronizados con el color)
         drawSliders(canvas, w, h, activeColor);
@@ -158,11 +170,13 @@ public class DemonControlView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX(); float y = event.getY();
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (menuBounds.contains(x, y)) { if (listener != null) listener.onMenuRequested(); return true; }
             if (activationBounds.contains(x, y)) { if (listener != null) listener.onActivationRequested(!active); return true; }
             if (inputBounds.contains(x, y)) { if (listener != null) listener.onInputRequested(); return true; }
             if (outputBounds.contains(x, y)) { if (listener != null) listener.onOutputRequested(); return true; }
             if (overlayBounds.contains(x, y)) { if (listener != null) listener.onOverlayPermissionRequested(); return true; }
             if (rootBounds.contains(x, y)) { if (listener != null) listener.onRootRequested(); return true; }
+            if (recordBounds.contains(x, y)) { if (listener != null) listener.onRecordRequested(); return true; }
             activeSlider = hitSlider(x, y);
         }
         if (activeSlider != -1 && (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN)) {

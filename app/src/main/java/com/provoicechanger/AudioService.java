@@ -36,6 +36,8 @@ public class AudioService extends Service {
     public static final String ACTION_STOP_PROCESSING = "com.provoicechanger.action.STOP_PROCESSING";
     public static final String ACTION_STOP_SERVICE = "com.provoicechanger.action.STOP_SERVICE";
     public static final String ACTION_UPDATE_DEVICES = "com.provoicechanger.action.UPDATE_DEVICES";
+    public static final String ACTION_START_RECORDING = "com.provoicechanger.action.START_RECORDING";
+    public static final String ACTION_STOP_RECORDING = "com.provoicechanger.action.STOP_RECORDING";
 
     private static final String CHANNEL_ID = "pro_voice_changer_audio";
     private static final int NOTIFICATION_ID = 11;
@@ -48,6 +50,10 @@ public class AudioService extends Service {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private volatile boolean processing;
+    private volatile boolean recording;
+    private java.io.FileOutputStream recordStream;
+    private java.io.File recordFile;
+    private int totalAudioLen = 0;
     private volatile int chunkSize = VoiceSettings.DEFAULT_CHUNK;
     private volatile float pitchFactor = VoiceSettings.DEFAULT_PITCH;
     private volatile float drive = VoiceSettings.DEFAULT_DRIVE;
@@ -67,6 +73,7 @@ public class AudioService extends Service {
     private TextView panelPitchValue;
     private TextView panelDriveValue;
     private Button panelToggleButton;
+    private Button panelRecordButton;
     private Runnable pendingSingleTap;
     private long lastTapAt;
 
@@ -90,6 +97,8 @@ public class AudioService extends Service {
         if (ACTION_STOP_SERVICE.equals(action)) { stopSelf(); return START_NOT_STICKY; }
         if (ACTION_STOP_PROCESSING.equals(action)) { stopAudioProcessing(); updateFloatingPanelState(); return START_STICKY; }
         if (ACTION_UPDATE_DEVICES.equals(action)) { loadSettings(); createFloatingButtonIfAllowed(); updateFloatingPanelState(); return START_STICKY; }
+        if (ACTION_START_RECORDING.equals(action)) { startRecording(); return START_STICKY; }
+        if (ACTION_STOP_RECORDING.equals(action)) { stopRecording(); return START_STICKY; }
         if (ACTION_START_PROCESSING.equals(action)) {
             if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) return START_NOT_STICKY;
             startAudioProcessing(); return START_STICKY;
@@ -162,8 +171,27 @@ public class AudioService extends Service {
             if (read > 0) {
                 applyDemonEffect(input, output, read);
                 player.write(output, 0, read);
+                
+                if (recording && recordStream != null) {
+                    try {
+                        byte[] byteData = shortToByte(output, read);
+                        recordStream.write(byteData);
+                        totalAudioLen += byteData.length;
+                    } catch (java.io.IOException e) {
+                        recording = false;
+                    }
+                }
             }
         }
+    }
+
+    private byte[] shortToByte(short[] sData, int size) {
+        byte[] bytes = new byte[size * 2];
+        for (int i = 0; i < size; i++) {
+            bytes[i * 2] = (byte) (sData[i] & 0x00FF);
+            bytes[i * 2 + 1] = (byte) (sData[i] >> 8);
+        }
+        return bytes;
     }
 
     private void applyDemonEffect(short[] in, short[] out, int len) {
@@ -208,6 +236,7 @@ public class AudioService extends Service {
 
     private synchronized void stopAudioProcessing() {
         if (!processing) return;
+        if (recording) stopRecording();
         processing = false;
         if (recorder != null) { try { recorder.stop(); } catch (Exception ignored) {} }
         if (player != null) { try { player.pause(); player.flush(); } catch (Exception ignored) {} }
@@ -300,6 +329,13 @@ public class AudioService extends Service {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(40)); lp.topMargin = dp(10);
         floatingPanel.addView(panelToggleButton, lp);
 
+        panelRecordButton = new Button(getApplicationContext());
+        panelRecordButton.setAllCaps(false); panelRecordButton.setTextColor(0xFFFFFFFF); panelRecordButton.setTextSize(13);
+        panelRecordButton.setBackgroundResource(R.drawable.button_neutral_background);
+        panelRecordButton.setOnClickListener(v -> { if (recording) stopRecording(); else startRecording(); });
+        LinearLayout.LayoutParams rlp2 = new LinearLayout.LayoutParams(-1, dp(40)); rlp2.topMargin = dp(8);
+        floatingPanel.addView(panelRecordButton, rlp2);
+
         panelChunkValue = addSlider("CHUNK", VoiceSettings.MAX_CHUNK - VoiceSettings.MIN_CHUNK, chunkSize - VoiceSettings.MIN_CHUNK, p -> { chunkSize = VoiceSettings.MIN_CHUNK + p; VoiceSettings.saveAudioValues(preferences, chunkSize, pitchFactor, drive); });
         panelPitchValue = addSlider("PITCH", 1000, Math.round((pitchFactor - VoiceSettings.MIN_PITCH) / (VoiceSettings.MAX_PITCH - VoiceSettings.MIN_PITCH) * 1000f), p -> { pitchFactor = VoiceSettings.MIN_PITCH + (p / 1000f) * (VoiceSettings.MAX_PITCH - VoiceSettings.MIN_PITCH); VoiceSettings.saveAudioValues(preferences, chunkSize, pitchFactor, drive); });
         panelDriveValue = addSlider("DISTORSION", 1000, Math.round((drive - VoiceSettings.MIN_DRIVE) / (VoiceSettings.MAX_DRIVE - VoiceSettings.MIN_DRIVE) * 1000f), p -> { drive = VoiceSettings.MIN_DRIVE + (p / 1000f) * (VoiceSettings.MAX_DRIVE - VoiceSettings.MIN_DRIVE); VoiceSettings.saveAudioValues(preferences, chunkSize, pitchFactor, drive); });
@@ -379,6 +415,12 @@ public class AudioService extends Service {
                 panelToggleButton.setText(isProc ? "Pausar" : "Activar");
                 panelToggleButton.setBackgroundResource(isProc ? R.drawable.button_danger_background : R.drawable.button_primary_background);
             }
+            if (panelRecordButton != null) {
+                final boolean isRec = recording;
+                panelRecordButton.setText(isRec ? "Detener Grab." : "Grabar Voz");
+                panelRecordButton.setBackgroundResource(isRec ? R.drawable.button_danger_background : R.drawable.button_neutral_background);
+                panelRecordButton.setVisibility(isProc ? View.VISIBLE : View.GONE);
+            }
             if (panelChunkValue != null) panelChunkValue.setText(String.valueOf(curChunk));
             if (panelPitchValue != null) panelPitchValue.setText(String.format(java.util.Locale.US, "%.2f", curPitch));
             if (panelDriveValue != null) panelDriveValue.setText(String.format(java.util.Locale.US, "%.2f", curDrive));
@@ -395,6 +437,125 @@ public class AudioService extends Service {
         return b.setContentTitle("ProVoice").setContentText(t).setSmallIcon(R.drawable.ic_stat_voice).setContentIntent(pi).setOngoing(true).build();
     }
     private void updateNotification(String t) { if (!shuttingDown) ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, buildNotification(t)); }
+
+    private void startRecording() {
+        if (!processing || recording) return;
+        try {
+            recordFile = new java.io.File(getExternalFilesDir(null), "recording_temp.raw");
+            recordStream = new java.io.FileOutputStream(recordFile);
+            totalAudioLen = 0;
+            recording = true;
+            updateNotification("Grabando...");
+            Intent intent = new Intent("com.provoicechanger.RECORDING_STATUS");
+            intent.putExtra("recording", true);
+            sendBroadcast(intent);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopRecording() {
+        if (!recording) return;
+        recording = false;
+        try {
+            if (recordStream != null) {
+                recordStream.close();
+                recordStream = null;
+            }
+            
+            java.io.File wavFile = new java.io.File(getExternalFilesDir(null), "ProVoice_" + System.currentTimeMillis() + ".wav");
+            copyWaveFile(recordFile, wavFile);
+            recordFile.delete();
+            
+            updateNotification("Efecto ON");
+            Intent intent = new Intent("com.provoicechanger.RECORDING_STATUS");
+            intent.putExtra("recording", false);
+            intent.putExtra("file_path", wavFile.getAbsolutePath());
+            sendBroadcast(intent);
+            
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void copyWaveFile(java.io.File tempFile, java.io.File wavFile) {
+        java.io.FileInputStream in = null;
+        java.io.FileOutputStream out = null;
+        long totalDataLen = totalAudioLen + 36;
+        long byteRate = SAMPLE_RATE * 2; // 16 bit mono
+
+        byte[] data = new byte[1024];
+
+        try {
+            in = new java.io.FileInputStream(tempFile);
+            out = new java.io.FileOutputStream(wavFile);
+
+            writeWaveFileHeader(out, totalAudioLen, totalDataLen, SAMPLE_RATE, 1, byteRate);
+
+            while (in.read(data) != -1) {
+                out.write(data);
+            }
+
+            in.close();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeWaveFileHeader(java.io.FileOutputStream out, long totalAudioLen,
+                                   long totalDataLen, long longSampleRate, int channels, long byteRate)
+            throws java.io.IOException {
+        byte[] header = new byte[44];
+
+        header[0] = 'R'; // RIFF/WAVE header
+        header[1] = 'I';
+        header[2] = 'F';
+        header[3] = 'F';
+        header[4] = (byte) (totalDataLen & 0xff);
+        header[5] = (byte) ((totalDataLen >> 8) & 0xff);
+        header[6] = (byte) ((totalDataLen >> 16) & 0xff);
+        header[7] = (byte) ((totalDataLen >> 24) & 0xff);
+        header[8] = 'W';
+        header[9] = 'A';
+        header[10] = 'V';
+        header[11] = 'E';
+        header[12] = 'f'; // 'fmt ' chunk
+        header[13] = 'm';
+        header[14] = 't';
+        header[15] = ' ';
+        header[16] = 16; // 4 bytes: size of 'fmt ' chunk
+        header[17] = 0;
+        header[18] = 0;
+        header[19] = 0;
+        header[20] = 1; // format = 1 (PCM)
+        header[21] = 0;
+        header[22] = (byte) channels;
+        header[23] = 0;
+        header[24] = (byte) (longSampleRate & 0xff);
+        header[25] = (byte) ((longSampleRate >> 8) & 0xff);
+        header[26] = (byte) ((longSampleRate >> 16) & 0xff);
+        header[27] = (byte) ((longSampleRate >> 24) & 0xff);
+        header[28] = (byte) (byteRate & 0xff);
+        header[29] = (byte) ((byteRate >> 8) & 0xff);
+        header[30] = (byte) ((byteRate >> 16) & 0xff);
+        header[31] = (byte) ((byteRate >> 24) & 0xff);
+        header[32] = (byte) (2 * channels); // block align
+        header[33] = 0;
+        header[34] = 16; // bits per sample
+        header[35] = 0;
+        header[36] = 'd';
+        header[37] = 'a';
+        header[38] = 't';
+        header[39] = 'a';
+        header[40] = (byte) (totalAudioLen & 0xff);
+        header[41] = (byte) ((totalAudioLen >> 8) & 0xff);
+        header[42] = (byte) ((totalAudioLen >> 16) & 0xff);
+        header[43] = (byte) ((totalAudioLen >> 24) & 0xff);
+
+        out.write(header, 0, 44);
+    }
+
     private boolean hasMicrophonePermission() { return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED; }
     private boolean canDrawOverlays() { return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this); }
     private int dp(float v) { return Math.round(v * getResources().getDisplayMetrics().density); }

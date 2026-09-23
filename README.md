@@ -23,6 +23,18 @@ La fase actual deja una base estable: microfono a efecto y salida local.
 
 El proyecto usa Android Gradle Plugin `9.2.1`, JDK 17, `minSdk 26` y `targetSdk 26`.
 
+# IA / Gemini
+
+La app queda preparada para leer una clave de Gemini/GenAI desde `local.properties`:
+
+```properties
+GEMINI_API_KEY=TU_CLAVE_AQUI
+```
+
+Tambien se puede usar una variable de entorno llamada `GEMINI_API_KEY`.
+
+Importante: en Android una clave incluida en el APK no es un secreto real. Para publicar la funcion de IA a usuarios finales, lo recomendable es mover las llamadas a un backend propio o usar Firebase AI Logic con App Check. Este cableado sirve para desarrollo y pruebas locales.
+
 # 🛠️ Ruta root propuesta
 
 1. Confirmar version exacta: Android 8.0 u 8.1, EMUI y arquitectura.
