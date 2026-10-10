@@ -1,4 +1,4 @@
-# 🎙️ ProVoiceChanger 😈
+# 🎙️ ProVoiceChanger 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) ![Java](https://img.shields.io/badge/java-181717?style=flat&logo=java&logoColor=red) 
 
 Base Android nativa para un cambiador de voz en tiempo real en Huawei Mate 10 Lite
 con Android 8/API 26.
