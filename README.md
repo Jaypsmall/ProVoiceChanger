@@ -1,7 +1,13 @@
-# 🎙️ ProVoiceChanger 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) ![Java](https://img.shields.io/badge/java-181717?style=flat&logo=java&logoColor=red) 
+# 🎙️ ProVoiceChanger 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) 
 
 Base Android nativa para un cambiador de voz en tiempo real en Huawei Mate 10 Lite
 con Android 8/API 26.
+
+<a href="https://github.com/Jaypsmall/DimeTu/releases/download/root/DimeTu_v1.0.1.apk">
+ <img src="https://img.shields.io/badge/DOWNLOAD_DIMETU_v1.0.1_APK-181717?style=flat&logo=android&logoColor=38B8D8" alt="Download Release"> 
+</a>
+
+---
 
 # 🎯 Estado actual
 
@@ -12,6 +18,8 @@ con Android 8/API 26.
 - Sliders en tiempo real: `CHUNK`, `PITCH` y `DISTORSION`.
 - Servicio en primer plano para procesar audio.
 - Procesamiento local: entrada de microfono, efecto y salida por altavoz o auriculares.
+
+---
 
 # Limite importante
 
@@ -35,6 +43,8 @@ Tambien se puede usar una variable de entorno llamada `GEMINI_API_KEY`.
 
 Importante: en Android una clave incluida en el APK no es un secreto real. Para publicar la funcion de IA a usuarios finales, lo recomendable es mover las llamadas a un backend propio o usar Firebase AI Logic con App Check. Este cableado sirve para desarrollo y pruebas locales.
 
+---
+
 # 🛠️ Ruta root propuesta
 
 1. Confirmar version exacta: Android 8.0 u 8.1, EMUI y arquitectura.
@@ -42,13 +52,15 @@ Importante: en Android una clave incluida en el APK no es un secreto real. Para 
 3. Explorar si el sistema expone rutas utiles en `/vendor/etc/audio_policy*`.
 4. Si existe camino viable, crear un modulo Magisk separado; no mezclarlo con la app base.
 
+---
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/682c78c5-ea2e-4176-b8bc-aaee9e063e6f" width="30%" />
   <img src="https://github.com/user-attachments/assets/fbee727d-e802-479c-b251-d595c0e569a0" width="30%" />
   <img src="https://github.com/user-attachments/assets/f2b72652-43ee-4087-858a-20433138d0cb" width="30%" />
 </p>
 
-![Android](https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white)
+---
 
 # 📄 Licencia
 
