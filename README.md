@@ -1,10 +1,10 @@
-# 🎙️ ProVoiceChanger 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) 
+# 🎙️ ProVoiceChanger (1.0.2) 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) 
 
 Base Android nativa para un cambiador de voz en tiempo real en Huawei Mate 10 Lite
 con Android 8/API 26.
 
-<a href="https://github.com/Jaypsmall/DimeTu/releases/download/root/DimeTu_v1.0.1.apk">
- <img src="https://img.shields.io/badge/DOWNLOAD_DIMETU_v1.0.1_APK-181717?style=flat&logo=android&logoColor=38B8D8" alt="Download Release"> 
+<a href="https://github.com/Jaypsmall/ProVoiceChanger/releases/download/root/ProVoiceChanger_v1.0.2.apk">
+ <img src="https://img.shields.io/badge/DOWNLOAD_PROVOICECHANGER_v1.0.2_APK-181717?style=flat&logo=android&logoColor=red" alt="Download Release"> 
 </a>
 
 ---
