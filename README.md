@@ -1,4 +1,4 @@
-# 🎙️ ProVoiceChanger (v1.0.2) 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red) ![Java](https://img.shields.io/badge/Java-181717?style=flat&logo=java&logoColor=red) ![Kotlin](https://img.shields.io/badge/Kotlin-181717?style=flat&logo=kotlin&logoColor=C81AEE) 
+# 🎙️ ProVoiceChanger (v1.0.2) 😈  ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=red)  ![Kotlin](https://img.shields.io/badge/Kotlin-181717?style=flat&logo=kotlin&logoColor=C81AEE) 
 
 Base Android nativa para un cambiador de voz en tiempo real en Huawei Mate 10 Lite
 con Android 8/API 26.
