@@ -64,7 +64,7 @@ Importante: en Android una clave incluida en el APK no es un secreto real. Para 
 
 # 📄 Licencia
 
-Copyright © 2026. Created by JAYLIZ. Todos los derechos reservados.
+Copyright © 2026. Created by **Jaypsmall**. Todos los derechos reservados.
 Software comercial de productividad protegido bajo propiedad intelectual privada.
 
 
